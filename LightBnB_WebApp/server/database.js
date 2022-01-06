@@ -43,9 +43,7 @@ const getUserWithId = (id) => {
    console.log(err.message);
  });
  };
-
 exports.getUserWithId = getUserWithId;
-
 
 /**
  * Add a new user to the database.
@@ -57,22 +55,12 @@ exports.getUserWithId = getUserWithId;
   .query(`INSERT INTO users (name, email, password)
   VALUES ($1, $2, $3)
   RETURNING *;`, [`${user.name}`, `${user.email}`, `${user.password}`])
-  .then((result) =>  {
-    console.log('result-->', result.rows[0]);
-    return result.rows;
-
-  })
+  .then((result) => result.rows[0])
   .catch((err) => {
     console.log(err.message);
   });
   };
 
-// const addUser =  function(user) {
-//   const userId = Object.keys(users).length + 1;
-//   user.id = userId;
-//   users[userId] = user;
-//   return Promise.resolve(user);
-// }
 exports.addUser = addUser;
 
 /// Reservations
@@ -82,9 +70,29 @@ exports.addUser = addUser;
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function(guest_id, limit = 10) {
-  return getAllProperties(null, 2);
-}
+// const getAllReservations = function(guest_id, limit = 10) {
+//   return getAllProperties(null, 2);
+// }
+
+const getAllReservations = (guest_id, limit = 10) => {
+return pool
+.query(`SELECT * 
+FROM reservations
+JOIN users ON users.id = guest_id
+JOIN properties ON properties.id = property_id
+WHERE guest_id = $1
+LIMIT $2;`, [`${guest_id}`, `${limit}`])
+.then((result) =>  {
+  console.log('result-->', result.rows);
+  return result.rows;
+
+})
+.catch((err) => {
+  console.log(err.message);
+});
+};
+
+
 exports.getAllReservations = getAllReservations;
 
 /// Properties
@@ -96,6 +104,7 @@ exports.getAllReservations = getAllReservations;
  * @return {Promise<[{}]>}  A promise to the properties.
  */
  const getAllProperties = (options, limit = 10) => {
+   
   return pool
     .query(`SELECT * FROM properties LIMIT $1`, [limit])
     .then((result) => result.rows)
